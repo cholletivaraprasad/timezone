@@ -1,25 +1,31 @@
 import React, { Component } from 'react';
+import ShowText from './ShowText';
 class SearchLocation extends Component {
     resultRef = React.createRef();
     constructor(props) {
         super(props);
         this.state = {
             value: '',
-            autosuggestions: []
+            autosuggestions: [],
+            timeZoneInfo:{},
         };
 
         this.handleKeyUp = this.handleKeyUp.bind(this);
         this.handleSelect = this.handleSelect.bind(this);
     }
     render() {
-        return <div style={style.searchBox}><input onChange={this.handleKeyUp} style={style.searchInput} placeholder="Type in the location" name="SearchLocation" id="SearchLocation" autoComplete='off'/>
+        return <div style={style.searchBox}><input  onChange={this.handleKeyUp} style={style.searchInput} 
+         placeholder="Type in the location" name="SearchLocation" id="SearchLocation" autoComplete='off'/>
 
             <div className="dropdown">
                 <ul id="result" ref={this.resultRef} style={style.ulstyle}>
                    {this.state.autosuggestions}
                 </ul>
             </div>
-
+          
+                <ShowText result= {this.state.timeZoneInfo}/>
+          
+            
         </div>
     }
     async handleKeyUp(event) {
@@ -31,25 +37,14 @@ class SearchLocation extends Component {
                 (data) =>{
                    let result = data.results.map((item,index)=>{
                        //console.log(item)
-                    return <li style={style.autosuggestionList}key={index} data-position= {item.position} onClick={this.handleSelect}>{item.title}</li>
+                    return <li style={style.autosuggestionList}key={index} data-selectedvalue={item.title} data-position= {item.position} onClick={this.handleSelect}>{item.title}</li>
                     })
 
                     this.setState({autosuggestions:result})
                 }
             ));
-        await fetch("http://api.timezonedb.com/v2.1/get-time-zone?key=NIMHBQESWZ8R&format=json&by=position&lat=40.689247&lng=-74.044502", {
-                "method": "GET",
-                "headers": {
-                    "x-rapidapi-host": "api.timezonedb.com",
-                    "x-rapidapi-key": "NIMHBQESWZ8R"
-                }
-            })
-            .then(response => {
-                console.log(response);
-            })
-            .catch(err => {
-                console.log(err);
-            });
+            
+            
            
         }else{
             this.setState({autosuggestions:null})
@@ -57,7 +52,21 @@ class SearchLocation extends Component {
     }
 
     async handleSelect(data){
+  
     let selected_position = data.currentTarget.dataset.position;
+
+    let selected_location = data.currentTarget.dataset.selectedvalue;
+    document.getElementById('SearchLocation').value = selected_location
+    
+        await fetch(`https://api.timezonedb.com/v2.1/get-time-zone?key=NIMHBQESWZ8R&format=json&by=position&lat=${Number(selected_position.split(",")[0])}&lng=${Number(selected_position.split(",")[1])}`)
+        .then(response => response.json().then((data)=>{
+            this.setState({
+                timeZoneInfo:data
+            })
+        }))
+        .catch(err => {
+            console.log(err);
+        });
        // console.log(selected_position)
         //console.log({lat:Number(selected_position.split(',')[0]), lng:Number(selected_position.split(',')[1])})
         var hereMarker = new window.H.map.Marker({lat:Number(selected_position.split(',')[0]), lng:Number(selected_position.split(',')[1])});
