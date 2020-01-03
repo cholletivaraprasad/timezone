@@ -25,9 +25,27 @@ class DisplayMap extends Component {
                 pixelRatio: window.devicePixelRatio || 1
             }
         );
-
+                
         new H.mapevents.Behavior(new H.mapevents.MapEvents(map));
 
+        // provided that the platform and the map are instantiated.
+const service = platform.getXYZService({
+    token: 'AMqStY2nTKKgAf9GzJ2V2QA',
+  });
+  
+  // create a provider for the public buildings data
+  const buildingsSpaceProvider = new H.service.xyz.Provider(service, '489f66e6-30a5-4b4d-a640-75824d91d736', {
+    'min': 14
+  });
+  const buildingsSpaceLayer = new H.map.layer.TileLayer(buildingsSpaceProvider);
+  // add a layer to the map
+  map.addLayer(buildingsSpaceLayer);
+  
+  // create a provider for the custom user defined data
+  const customSpaceProvider = new H.service.xyz.Provider(service, '489f66e6-30a5-4b4d-a640-75824d91d736');
+  const customSpaceLayer = new H.map.layer.TileLayer(customSpaceProvider);
+  // add a layer to the map
+  map.addLayer(customSpaceLayer);
 
         H.ui.UI.createDefault(map, defaultLayers);
 
